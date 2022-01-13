@@ -48,7 +48,23 @@ enum class MessageVerificationResult {
     ERR_NOT_SIGNED,
 
     //! The message verification was successful.
-    OK
+    OK,
+
+    //
+    // BIP-322 extensions
+    //
+
+    //! The message has set timelocks but is otherwise valid (BIP-322)
+    OK_TIMELOCKED,
+
+    //! The validator was unable to check the scripts (BIP-322)
+    INCONCLUSIVE,
+
+    //! Some check failed (BIP-322)
+    ERR_INVALID,
+
+    //! Proof of funds require the wallet-enabled verifier (BIP-322)
+    ERR_POF,
 };
 
 enum class SigningResult {
@@ -58,7 +74,7 @@ enum class SigningResult {
 };
 
 /** Verify a signed message.
- * @param[in] address Signer's bitcoin address, it must refer to a public key.
+ * @param[in] address Signer's bitcoin address.
  * @param[in] signature The signature in base64 format.
  * @param[in] message The message that was signed.
  * @return result code */
