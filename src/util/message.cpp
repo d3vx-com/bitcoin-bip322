@@ -63,7 +63,7 @@ bool MessageSign(
 {
     std::vector<unsigned char> signature_bytes;
 
-    if (!privkey.SignCompact(MessageHash(message), signature_bytes)) {
+    if (!privkey.SignCompact(MessageHash(message, MessageSignatureFormat::LEGACY), signature_bytes)) {
         return false;
     }
 
@@ -72,12 +72,28 @@ bool MessageSign(
     return true;
 }
 
-uint256 MessageHash(const std::string& message)
+uint256 MessageHash(const std::string& message, MessageSignatureFormat format)
 {
-    CHashWriter hasher(SER_GETHASH, 0);
-    hasher << MESSAGE_MAGIC << message;
+    switch (format) {
+    case MessageSignatureFormat::LEGACY:
+        {
+            CHashWriter hasher(SER_GETHASH, 0);
+            hasher << MESSAGE_MAGIC << message;
 
-    return hasher.GetHash();
+            return hasher.GetHash();
+        }
+
+    case MessageSignatureFormat::SIMPLE:
+    case MessageSignatureFormat::FULL:
+        {
+            CHashWriter hasher(HASHER_BIP322);
+            if (!message.empty()) {
+                hasher.write(AsBytes(Span{message.data(), message.size() * sizeof(char)}));
+            }
+            return hasher.GetSHA256();
+        }
+    }
+    assert(false);
 }
 
 std::string SigningResultString(const SigningResult res)
